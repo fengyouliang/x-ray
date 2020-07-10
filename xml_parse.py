@@ -6,6 +6,7 @@ import os
 import numpy as np
 import config
 from sklearn.model_selection import train_test_split
+import pickle
 
 # label_ids = {'knife': 1, 'scissors': 2, 'lighter': 3, 'zippooil': 4, 'pressure': 5, 'slingshot': 6,
 #                      'handcuffs': 7,
@@ -21,6 +22,7 @@ class X2COCO:
         self.bbox_index = 0
         self.label_ids = {'knife': 1, 'scissors': 2, 'lighter': 3, 'zippooil': 4, 'pressure': 5, 'slingshot': 6,
                           'handcuffs': 7, 'nailpolish': 8, 'powerbank': 9, 'firecrackers': 10}
+        self.ann_count = {}
         self.results = self.load_xml_ann()
 
     def save_coco(self, save_name=None):
@@ -33,6 +35,10 @@ class X2COCO:
             os.makedirs(save_path, exist_ok=True)
             json.dump(instance, open(f'{save_path}/{mode}.json', 'w'), ensure_ascii=False, indent=2)
 
+    def ann_count_pkl(self):
+        with open(f'ann_count/count.pkl', 'wb') as fid:
+            pickle.dump(self.ann_count, fid)
+
     def load_xml_ann(self):
         images_train, annotations_train = [], []
         images_val, annotations_val = [], []
@@ -40,10 +46,6 @@ class X2COCO:
 
         train_name, val_name = train_test_split(self.all_basenames, train_size=0.8)
 
-        for basename in self.all_basenames:
-            image, annotation = self.load_xml(basename)
-            all_images.append(image)
-            all_annotations.extend(annotation)
         for basename in train_name:
             image, annotation = self.load_xml(basename)
             images_train.append(image)
@@ -52,6 +54,10 @@ class X2COCO:
             image, annotation = self.load_xml(basename)
             images_val.append(image)
             annotations_val.extend(annotation)
+        for basename in self.all_basenames:
+            image, annotation = self.load_xml(basename)
+            all_images.append(image)
+            all_annotations.extend(annotation)
         img_ann = {
             'train': [images_train, annotations_train],
             'val': [images_val, annotations_val],
@@ -84,8 +90,6 @@ class X2COCO:
             name = obj.find('name').text
             label = self.label_ids[name]
 
-            # difficult = int(obj.find('difficult').text)
-
             bnd_box = obj.find('bndbox')
             bbox = [
                 float(bnd_box.find('xmin').text),
@@ -112,7 +116,7 @@ class X2COCO:
                 'iscrowd': 0,
             }
             annotation.append(box_item)
-
+        self.ann_count[basename] = len(annotation)
         return image, annotation
 
     def to_coco_json(self, mode):
@@ -133,8 +137,10 @@ class X2COCO:
 
 
 def main():
-    for idx in range(5):
-        X2COCO().save_coco(save_name=f'fold{idx}')
+    for idx in range(1):
+        x2coco = X2COCO()
+        # x2coco.save_coco(save_name=f'fold{idx}')
+        x2coco.ann_count_pkl()
 
 
 if __name__ == '__main__':

@@ -1,15 +1,14 @@
 from urllib.request import urlopen
 
-import numpy as np
 import cv2
-from matplotlib import pyplot as plt
-
+import numpy as np
 from albumentations import (
-    HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
+    CLAHE, RandomRotate90,
     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
     IAASharpen, IAAEmboss, Flip, OneOf, Compose
 )
+from matplotlib import pyplot as plt
 
 
 def download_image(url):

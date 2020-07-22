@@ -1,12 +1,13 @@
 import glob
 import json
+import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
-import os
-import numpy as np
-import config
+
 from sklearn.model_selection import train_test_split
-import pickle
+
+import config
+
 
 # label_ids = {'knife': 1, 'scissors': 2, 'lighter': 3, 'zippooil': 4, 'pressure': 5, 'slingshot': 6,
 #                      'handcuffs': 7,
@@ -22,7 +23,6 @@ class X2COCO:
         self.bbox_index = 0
         self.label_ids = {'knife': 1, 'scissors': 2, 'lighter': 3, 'zippooil': 4, 'pressure': 5, 'slingshot': 6,
                           'handcuffs': 7, 'nailpolish': 8, 'powerbank': 9, 'firecrackers': 10}
-        self.ann_count = {}
         self.results = self.load_xml_ann()
 
     def save_coco(self, save_name=None):
@@ -34,10 +34,7 @@ class X2COCO:
                 save_path = f'{self.root_dir}/coco/annotations/{save_name}'
             os.makedirs(save_path, exist_ok=True)
             json.dump(instance, open(f'{save_path}/{mode}.json', 'w'), ensure_ascii=False, indent=2)
-
-    def ann_count_pkl(self):
-        with open(f'ann_count/count.pkl', 'wb') as fid:
-            pickle.dump(self.ann_count, fid)
+            print(f'{save_path}/{mode}.json')
 
     def load_xml_ann(self):
         images_train, annotations_train = [], []
@@ -81,7 +78,7 @@ class X2COCO:
             'height': h,
             'width': w,
             'id': image_id,
-            'filename': basename + '.jpg'
+            'file_name': basename + '.jpg'
         }
 
         annotation = []
@@ -116,7 +113,6 @@ class X2COCO:
                 'iscrowd': 0,
             }
             annotation.append(box_item)
-        self.ann_count[basename] = len(annotation)
         return image, annotation
 
     def to_coco_json(self, mode):
@@ -137,10 +133,9 @@ class X2COCO:
 
 
 def main():
-    for idx in range(1):
+    for idx in range(5):
         x2coco = X2COCO()
-        # x2coco.save_coco(save_name=f'fold{idx}')
-        x2coco.ann_count_pkl()
+        x2coco.save_coco(save_name=f'fold{idx}')
 
 
 if __name__ == '__main__':

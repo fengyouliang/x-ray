@@ -7,6 +7,7 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 
 import config
+import numpy as np
 
 
 # label_ids = {'knife': 1, 'scissors': 2, 'lighter': 3, 'zippooil': 4, 'pressure': 5, 'slingshot': 6,
@@ -92,9 +93,9 @@ class X2COCO:
                 float(bnd_box.find('xmin').text),
                 float(bnd_box.find('ymin').text),
                 float(bnd_box.find('xmax').text),
-                float(bnd_box.find('ymax').text)
+                float(bnd_box.find('ymax').text),
             ]
-            x1, y1, x2, y2 = bbox
+            x1, y1, x2, y2 = np.array(bbox) - 1
             x, y, w, h = x1, y1, x2 - x1, y2 - y1
             bbox = [x, y, w, h]
             area = w * h
@@ -113,6 +114,7 @@ class X2COCO:
                 'iscrowd': 0,
             }
             annotation.append(box_item)
+        assert annotation != []
         return image, annotation
 
     def to_coco_json(self, mode):
@@ -133,7 +135,7 @@ class X2COCO:
 
 
 def main():
-    for idx in range(5):
+    for idx in range(1):
         x2coco = X2COCO()
         x2coco.save_coco(save_name=f'fold{idx}')
 

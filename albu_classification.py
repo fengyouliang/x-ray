@@ -1,5 +1,7 @@
 from urllib.request import urlopen
-
+import os
+import os.path as osp
+from pathlib import Path
 import cv2
 import numpy as np
 from albumentations import (
@@ -8,6 +10,7 @@ from albumentations import (
     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
     IAASharpen, IAAEmboss, Flip, OneOf, Compose
 )
+from albumentations import *
 from matplotlib import pyplot as plt
 
 
@@ -19,11 +22,19 @@ def download_image(url):
     return image
 
 
+def load_image(image_path):
+    assert Path(image_path).is_file(), image_path
+    image = cv2.imread(image_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    return image
+
+
 def augment_and_show(aug, image):
     aug_image = aug(image=image)['image']
     plt.figure(figsize=(10, 10))
     plt.imshow(aug_image)
     plt.show()
+    return aug_image
 
 
 def augment_flips_color(p=.5):
@@ -70,11 +81,18 @@ def strong_aug(p=.5):
 
 
 def main():
-    image = download_image('https://d177hi9zlsijyy.cloudfront.net/wp-content/uploads/sites/2/2018/05/11202041'
-                           '/180511105900-atlas-boston-dynamics-robot-running-super-tease.jpg')
+    # image = download_image('https://d177hi9zlsijyy.cloudfront.net/wp-content/uploads/sites/2/2018/05/11202041'
+    #                        '/180511105900-atlas-boston-dynamics-robot-running-super-tease.jpg')
+    import config
+    image_root = config.image_root_path
+    image_id = 100001
+    image = load_image(f"{image_root}{image_id}.jpg")
     plt.figure(figsize=(10, 10))
     plt.imshow(image)
     plt.show()
+
+    aug = RandomBrightnessContrast(0.5, 0.5, p=1)
+    augment_and_show(aug, image)
 
     # aug = HorizontalFlip(p=1)
     # augment_and_show(aug, image)
@@ -88,8 +106,8 @@ def main():
     # aug = augment_flips_color(p=1)
     # augment_and_show(aug, image)
 
-    aug = strong_aug(p=1)
-    augment_and_show(aug, image)
+    # aug = strong_aug(p=1)
+    # augment_and_show(aug, image)
 
 
 if __name__ == '__main__':
